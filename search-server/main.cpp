@@ -61,6 +61,12 @@ struct Document
 class SearchServer
 {
 public:
+
+
+    double CountIdf(const string &word) const {
+        return log(static_cast<double>(document_count_) / static_cast<double>(word_to_documents_freqs_.at(word).size())); 
+    }
+
     void SetStopWords(const string &text)
     {
         for (const string &word : SplitIntoWords(text))
@@ -77,7 +83,7 @@ public:
         for (const auto &word : words)
         {
 
-            word_to_documents_[word].insert(document_id);
+       
             word_to_documents_freqs_[word][document_id] += increase;
         }
     }
@@ -109,7 +115,7 @@ private:
     };
 
     map<string, map<int, double>> word_to_documents_freqs_;
-    map<string, set<int>> word_to_documents_;
+
     set<string> stop_words_;
 
     bool IsStopWord(const string &word) const
@@ -153,9 +159,9 @@ private:
         {
             for (auto &word : query_words.plus_words)
             {
-                if (word_to_documents_.count(word))
+                if (word_to_documents_freqs_.count(word))
                 {
-                    double idf = log(static_cast<double>(document_count_) / static_cast<double>(word_to_documents_.at(word).size()));
+                    double idf = CountIdf(word); 
                     // double idf = CountIdf(word_to_documents_.at(word).size());
 
                     for (const auto &[id, TIF] : word_to_documents_freqs_.at(word))
@@ -168,20 +174,20 @@ private:
 
         for (auto &word : query_words.minus_words)
         {
-            if (word_to_documents_.count(word) == 0)
+            if (word_to_documents_freqs_.count(word) == 0)
             {
                 continue;
             }
             else
             {
-                for (auto [words, ids] : word_to_documents_)
+                for (auto [words, info] : word_to_documents_freqs_)
                 {
                     if (words == word)
                     {
-                        for (auto id : ids)
-                        {
-                            document_to_relevance.erase(id);
-                        }
+                     for (const auto [document_id, smth] : word_to_documents_freqs_.at(word))
+                 {
+                        document_to_relevance.erase(document_id);
+                 }
                     }
                 }
             }
@@ -221,3 +227,4 @@ int main()
              << "relevance = "s << relevance << " }"s << endl;
     }
 }
+
