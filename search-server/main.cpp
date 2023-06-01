@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 #include <optional>
+#include <numeric>
 
 using namespace std;
 
@@ -119,12 +120,11 @@ public:
 
     template <typename DocumentPredicate>
     vector<Document> FindTopDocuments(const string& raw_query, DocumentPredicate document_predicate) const {
-        Query query;
-        if (!ParseQuery(raw_query, query)) {
-           throw invalid_argument("invalid request"s);
-        }
+         vector<Document> result;
       
-       vector<Document> result = FindAllDocuments(query, document_predicate);
+        Query query = ParseQuery(raw_query);
+      
+        result = FindAllDocuments(query, document_predicate);
 
         sort(result.begin(), result.end(),
              [](const Document& lhs, const Document& rhs) {
@@ -137,6 +137,7 @@ public:
         if (result.size() > MAX_RESULT_DOCUMENT_COUNT) {
             result.resize(MAX_RESULT_DOCUMENT_COUNT);
         }
+        
         return result;
     }
 
@@ -155,14 +156,11 @@ public:
         return documents_.size();
     }
 
-    //[[nodiscard]] bool MatchDocument(const string& raw_query,
-                                                        //int document_id, tuple<vector<string>, DocumentStatus> & result) const {
+   
   tuple<vector<string>, DocumentStatus> MatchDocument(const string& raw_query, int document_id) const {
-        Query query;
-        if (!ParseQuery(raw_query,query)) {
-           throw invalid_argument("invalid request"s);
-        }
-        tuple<vector<string>, DocumentStatus> result;
+      tuple<vector<string>, DocumentStatus> result;
+       
+        Query query = ParseQuery(raw_query);
         vector<string> matched_words;
         for (const string& word : query.plus_words) {
             if (word_to_document_freqs_.count(word) == 0) {
@@ -183,18 +181,12 @@ public:
         }
         result = {matched_words, documents_.at(document_id).status};
         return result;
-        
+       
+         
     }
 
     int GetDocumentId(int index) const {
-        int i = 0;
-         for (const auto id : document_ids) {
-            if (i == index) {
-                return id;
-            }
-            ++i;
-        }
-        throw out_of_range("invalid id"s);
+        return document_ids.at(index);
     }
 
 private:
@@ -244,11 +236,7 @@ private:
         if (ratings.empty()) {
             return 0;
         }
-        int rating_sum = 0;
-        for (const int rating : ratings) {
-            rating_sum += rating;
-        }
-        return rating_sum / static_cast<int>(ratings.size());
+        return (accumulate(ratings.begin(), ratings.end(), 0)  / static_cast<int>(ratings.size()));
     }
 
     struct QueryWord {
@@ -257,21 +245,20 @@ private:
         bool is_stop;
     };
 
-   bool ParseQueryWord(string text, QueryWord& word) const {
+  QueryWord ParseQueryWord(string text) const {
      if (!IsValidWord(text)) {
-            return false;
+            throw invalid_argument("invalid request"s);
         }
         bool is_minus = false;
         // Word shouldn't be empty
         if (text[0] == '-') {
              if (text.size() == 1 || text[1] == '-') {
-                return false;
+                 throw invalid_argument("invalid request"s);
             }
             is_minus = true;
             text = text.substr(1);
         }
-       word = {text, is_minus, IsStopWord(text)};
-       return true;
+       return {text, is_minus, IsStopWord(text)};
     }
 
     struct Query {
@@ -279,24 +266,20 @@ private:
         set<string> minus_words;
     };
 
-    bool ParseQuery(const string& text, Query& query) const {
+   Query ParseQuery(const string& text) const {
     
-        
+        Query result;
         for (const string& word : SplitIntoWords(text)) {
-             QueryWord query_word;
-              if (!ParseQueryWord(word, query_word)) {
-                return false;
-            }
-         
+             QueryWord query_word = ParseQueryWord(word); 
             if (!query_word.is_stop) {
                 if (query_word.is_minus) {
-                    query.minus_words.insert(query_word.data);
+                    result.minus_words.insert(query_word.data);
                 } else {
-                    query.plus_words.insert(query_word.data);
+                    result.plus_words.insert(query_word.data);
                 }
             }
         }
-        return true;
+        return result;
     }
 
     // Existence required
