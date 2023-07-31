@@ -3,15 +3,15 @@
 #include <vector>
 #include <set>
 #include <iostream>
-string ReadLine() {
-    string s;
-    getline(cin, s);
+std::string ReadLine() {
+    std::string s;
+    getline(std::cin, s);
     return s;
 }
 
 int ReadLineWithNumber() {
     int result;
-    cin >> result;
+    std::cin >> result;
     ReadLine();
     return result;
 }

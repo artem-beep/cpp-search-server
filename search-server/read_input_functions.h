@@ -3,9 +3,9 @@
 #include <vector>
 #include <set>
 
-using namespace std;
 
-string ReadLine();
+
+std::string ReadLine();
 
 int ReadLineWithNumber();
 

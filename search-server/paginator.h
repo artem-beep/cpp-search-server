@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "document.h"
-using namespace std;
+
 template <typename Iterator>
 class IteratorRange  {
     public: 
@@ -59,7 +59,7 @@ public:
     
 
 private:
-vector <IteratorRange<Iterator>> pages;
+std::vector <IteratorRange<Iterator>> pages;
 
 };
 
@@ -70,7 +70,8 @@ auto Paginate(const Container& c, size_t page_size) {
 
 
 template <typename Iterator>
-ostream& operator<<(ostream& out, IteratorRange<Iterator> itr) {
+std::ostream& operator<<(std::ostream& out, IteratorRange<Iterator> itr) {
+    using namespace std::string_literals;
     for (auto docum = itr.begin(); docum!= itr.end(); docum++) {
         out << "{ " << *docum << " }"s;
     }

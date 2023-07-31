@@ -1,6 +1,6 @@
 #include "request_queue.h"
     
-    vector<Document> RequestQueue::AddFindRequest(const string& raw_query, DocumentStatus status) {
+    std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query, DocumentStatus status) {
        auto result = temp_server_.FindTopDocuments(raw_query, status);
        if (result.size() > 0){
         requests_.push_back({raw_query, 1});
@@ -14,7 +14,7 @@
     return result;
     }
 
-    vector<Document> RequestQueue::AddFindRequest(const string& raw_query) {
+    std::vector<Document> RequestQueue::AddFindRequest(const std::string& raw_query) {
        auto result = temp_server_.FindTopDocuments(raw_query);
        if (result.size() > 0){
         requests_.push_back({raw_query, 1});

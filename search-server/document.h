@@ -2,7 +2,6 @@
 #include <iostream>
 #include "paginator.h"
 
-using namespace std;
 
 struct Document {
     Document() = default;
@@ -23,6 +22,6 @@ enum class DocumentStatus {
     BANNED,
     REMOVED,
 };
-ostream& operator<<(ostream& out, Document doc);
+std::ostream& operator<<(std::ostream& out, Document doc);
 
 
