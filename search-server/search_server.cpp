@@ -3,6 +3,37 @@
 #include <cmath>
 #include <utility>
 #include <stdexcept>
+
+
+    std::vector<int>::iterator SearchServer::begin() {
+        return document_ids_.begin();
+    }
+
+    std::vector<int>::iterator SearchServer::end() {
+        return document_ids_.end();
+    }
+
+    const std::map<std::string, double>& SearchServer::GetWordFrequencies(int document_id) const {
+
+       auto & res = ids_to_word_freq_.at(document_id);
+       return res;
+    }
+
+     void SearchServer::RemoveDocument(int document_id){
+
+        // очищение  word_to_document_freqs_
+        auto memb = GetWordFrequencies(document_id);
+        for (auto [word,freq] : memb) {
+            word_to_document_freqs_.at(word).erase(document_id);
+        }
+        // удаление из словаря documents_
+        documents_.erase(document_id);
+        // удаление из вектора document_ids_
+        auto iter2 = std::find(document_ids_.begin(), document_ids_.end(), document_id);
+        document_ids_.erase(iter2);
+     }
+
+
     SearchServer::SearchServer(const std::string& stop_words_text)
         : SearchServer(
             SplitIntoWords(stop_words_text))  // Invoke delegating constructor from string container
@@ -31,7 +62,10 @@
         const double inv_word_count = 1.0 / words.size();
         for (const std::string& word : words) {
             word_to_document_freqs_[word][document_id] += inv_word_count;
+            ids_to_word_freq_[document_id][word] += inv_word_count;
         }
+
+
         documents_.emplace(document_id, SearchServer::DocumentData{ComputeAverageRating(ratings), status});
         document_ids_.push_back(document_id);
     }
@@ -52,12 +86,10 @@
         return documents_.size();
     }
 
-    int SearchServer::GetDocumentId(int index) const {
-        return document_ids_.at(index);
-    }
 
     std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::string& raw_query,
                                                         int document_id) const {
+        LOG_DURATION_STREAM("Operation time", std::cout);
         const auto query = SearchServer::ParseQuery(raw_query);
 
         std::vector<std::string> matched_words;
