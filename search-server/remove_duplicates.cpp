@@ -11,7 +11,7 @@ void RemoveDuplicates(SearchServer& search_server) {
 
         set<string>words_of_doc;
         for (auto memb : doc_data) {
-        words_of_doc.insert(memb.first);
+            words_of_doc.insert(memb.first);
         }
 
         if (unique_docs.count(words_of_doc) > 0) {

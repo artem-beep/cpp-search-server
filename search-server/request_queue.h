@@ -46,5 +46,5 @@ private:
         CutDeque();
     }
     return result;
-    }
+}
  
